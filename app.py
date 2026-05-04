@@ -6,23 +6,51 @@ from report import PriceReport
 
 
 st.set_page_config(
-    page_title="Price Hunter",
+    page_title="Price Hunter ASOS",
     page_icon="🛒",
     layout="wide"
 )
 
-st.title("🛒 Price Hunter")
-st.write("Aplicație Python care extrage produse live de pe Zara și H&M folosind BeautifulSoup.")
+st.title("🛒 Price Hunter - ASOS")
+st.write("Aplicație Python care extrage produse live de pe ASOS folosind requests și BeautifulSoup.")
 
-if st.button("Extrage produse de pe site-uri"):
-    with st.spinner("Se extrag produsele..."):
+st.sidebar.header("Căutare produse")
+
+search_query = st.sidebar.text_input(
+    "Ce produs cauți?",
+    value="dress",
+    placeholder="Ex: dress, shirt, jeans, shoes"
+)
+
+category = st.sidebar.selectbox(
+    "Categorie",
+    ["haine", "rochii", "tricouri", "jeans", "pantofi", "accesorii"]
+)
+
+min_price = st.sidebar.number_input(
+    "Preț minim (£)",
+    min_value=0.0,
+    value=0.0
+)
+
+max_price = st.sidebar.number_input(
+    "Preț maxim (£)",
+    min_value=0.0,
+    value=100.0
+)
+
+if st.button("Extrage produse de pe ASOS"):
+    with st.spinner("Se extrag produsele de pe ASOS..."):
         scraper = Scraper()
-        products = scraper.get_products()
+        products = scraper.get_products(
+            search_text=search_query,
+            category=category
+        )
 
     if not products:
         st.error(
-            "Nu au fost găsite produse. Site-urile pot încărca produsele prin JavaScript "
-            "sau pot bloca cererile automate."
+            "Nu au fost găsite produse. ASOS poate încărca produsele prin JavaScript "
+            "sau poate bloca temporar cererile automate."
         )
     else:
         st.session_state["products"] = products
@@ -30,31 +58,6 @@ if st.button("Extrage produse de pe site-uri"):
 
 if "products" in st.session_state:
     products = st.session_state["products"]
-    report = PriceReport(products)
-
-    st.sidebar.header("Filtre")
-
-    store = st.sidebar.selectbox(
-        "Magazin",
-        ["Toate", "Zara", "H&M"]
-    )
-
-    search_text = st.sidebar.text_input(
-        "Caută produs",
-        placeholder="Ex: top, shirt, dress"
-    )
-
-    min_price = st.sidebar.number_input(
-        "Preț minim",
-        min_value=0.0,
-        value=0.0
-    )
-
-    max_price = st.sidebar.number_input(
-        "Preț maxim",
-        min_value=0.0,
-        value=300.0
-    )
 
     colors = ["Toate"] + sorted(set(product.color for product in products))
 
@@ -63,9 +66,10 @@ if "products" in st.session_state:
         colors
     )
 
+    report = PriceReport(products)
+
     filtered_products = report.filter_products(
-        store=store,
-        search_text=search_text,
+        search_text="",
         min_price=min_price,
         max_price=max_price,
         color=color
@@ -88,11 +92,10 @@ if "products" in st.session_state:
 
         st.subheader("Cel mai ieftin produs")
         st.write(f"**{cheapest.name}**")
-        st.write(f"Magazin: {cheapest.store}")
         st.write(f"Preț: {cheapest.price:.2f} £")
-        st.write(f"Culoare: {cheapest.color}")
+        st.write(f"Culoare detectată: {cheapest.color}")
         st.write(cheapest.link)
     else:
-        st.warning("Nu există produse care respectă filtrele.")
+        st.warning("Nu există produse care respectă filtrele alese.")
 else:
-    st.info("Apasă pe butonul de mai sus ca să extragi produsele.")
+    st.info("Alege un produs din sidebar și apasă pe butonul de extragere.")
