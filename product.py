@@ -1,18 +1,14 @@
 class Product:
-    def __init__(self, name, price, availability, rating, category, link):
+    def __init__(self, name, price, rating, category):
         self.name = name
-        self.price = float(price)
-        self.availability = availability
+        self.price = price
         self.rating = rating
         self.category = category
-        self.link = link
 
     def to_dict(self):
         return {
             "Titlu": self.name,
-            "Pret": self.price,
-            "Disponibilitate": self.availability,
+            "Preț (£)": self.price,
             "Rating": self.rating,
-            "Categorie": self.category,
-            "Link": self.link
+            "Categorie": self.category
         }

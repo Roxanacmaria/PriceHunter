@@ -1,33 +1,25 @@
 import streamlit as st
-import pandas as pd
-
 from scraper import Scraper
 from report import PriceReport
+from storage import Storage
 
-
-st.set_page_config(
-    page_title="Price Hunter",
-    page_icon="📚",
-    layout="wide"
-)
+st.set_page_config(page_title="Price Hunter", page_icon="📚", layout="wide")
 
 st.title("📚 Price Hunter")
-st.write("Aplicație Python care extrage cărți și prețuri folosind requests și BeautifulSoup.")
+
+st.write(
+    "Aplicație Python care extrage cărți și prețuri folosind requests și BeautifulSoup."
+)
 
 st.info("Datele sunt extrase live de pe site-ul books.toscrape.com.")
 
-st.sidebar.header("Filtre")
+scraper = Scraper()
 
-pages = st.sidebar.slider(
-    "Câte pagini vrei să extragi?",
-    min_value=1,
-    max_value=5,
-    value=1
-)
+st.sidebar.title("Filtre")
 
-search_text = st.sidebar.text_input(
-    "Caută carte",
-    placeholder="Ex: travel, music, mystery"
+category = st.sidebar.selectbox(
+    "Alege genul",
+    ["Toate"] + list(scraper.categories.keys())
 )
 
 min_price = st.sidebar.number_input(
@@ -48,48 +40,45 @@ rating = st.sidebar.selectbox(
 )
 
 if st.button("Extrage cărți"):
-    with st.spinner("Se extrag datele..."):
-        scraper = Scraper()
-        products = scraper.get_products(pages=pages)
+    with st.spinner("Se extrag datele de pe toate paginile..."):
+        products = scraper.get_products(category)
 
-    st.session_state["products"] = products
     st.success(f"Au fost extrase {len(products)} cărți.")
 
-if "products" in st.session_state:
-    products = st.session_state["products"]
-    report = PriceReport(products)
+    filtered_products = []
 
-    filtered_products = report.filter_products(
-        search_text=search_text,
-        min_price=min_price,
-        max_price=max_price,
-        rating=rating
-    )
+    for product in products:
+        if product.price < min_price:
+            continue
+
+        if product.price > max_price:
+            continue
+
+        if rating != "Toate" and product.rating != rating:
+            continue
+
+        filtered_products.append(product)
 
     st.subheader("Cărți găsite")
 
     if filtered_products:
-        df = pd.DataFrame([product.to_dict() for product in filtered_products])
-        st.dataframe(df, use_container_width=True)
+        report = PriceReport(filtered_products)
+        storage = Storage()
+        storage.save_to_csv(filtered_products)
 
-        cheapest = report.cheapest_product(filtered_products)
-        expensive = report.most_expensive_product(filtered_products)
-        average = report.average_price(filtered_products)
+        col1, col2, col3 = st.columns(3)
 
-        col1, col2, col3, col4 = st.columns(4)
+        cheapest = report.cheapest_product()
+        expensive = report.most_expensive_product()
 
         col1.metric("Număr cărți", len(filtered_products))
-        col2.metric("Cel mai ieftin", f"{cheapest.price:.2f} £")
-        col3.metric("Cel mai scump", f"{expensive.price:.2f} £")
-        col4.metric("Preț mediu", f"{average:.2f} £")
+        col2.metric("Cel mai mic preț", f"£{cheapest.price}")
+        col3.metric("Preț mediu", f"£{report.average_price()}")
 
-        st.subheader("Cea mai ieftină carte")
-        st.write(f"**{cheapest.name}**")
-        st.write(f"Preț: {cheapest.price:.2f} £")
-        st.write(f"Rating: {cheapest.rating}")
-        st.write(cheapest.link)
+        st.table([product.to_dict() for product in filtered_products])
 
+        st.success("Datele filtrate au fost salvate în products.csv.")
     else:
         st.warning("Nu există cărți care respectă filtrele alese.")
 else:
-    st.info("Apasă pe butonul «Extrage cărți» pentru a începe.")
+    st.info("Apasă pe butonul de mai sus ca să extragi cărțile.")

@@ -1,37 +1,29 @@
 from scraper import Scraper
 from report import PriceReport
+from storage import Storage
 
 
 def main():
     scraper = Scraper()
-    products = scraper.get_products(pages=1)
+    products = scraper.get_products("Toate")
 
     report = PriceReport(products)
+    storage = Storage()
 
-    filtered_products = report.filter_products(
-        search_text="",
-        min_price=0,
-        max_price=60,
-        rating="Toate"
-    )
+    storage.save_to_csv(products)
 
-    print("Carti extrase:")
+    print(f"Au fost extrase {len(products)} cărți.")
 
-    for product in filtered_products:
-        print(
-            f"{product.name} | {product.price} £ | "
-            f"{product.rating} | {product.availability}"
-        )
+    cheapest = report.cheapest_product()
+    expensive = report.most_expensive_product()
 
-    cheapest = report.cheapest_product(filtered_products)
-    expensive = report.most_expensive_product(filtered_products)
-    average = report.average_price(filtered_products)
+    if cheapest:
+        print(f"Cea mai ieftină carte: {cheapest.name} - £{cheapest.price}")
 
-    print("\nRaport:")
-    print(f"Numar carti: {len(filtered_products)}")
-    print(f"Cea mai ieftina carte: {cheapest.name} - {cheapest.price} £")
-    print(f"Cea mai scumpa carte: {expensive.name} - {expensive.price} £")
-    print(f"Pret mediu: {average:.2f} £")
+    if expensive:
+        print(f"Cea mai scumpă carte: {expensive.name} - £{expensive.price}")
+
+    print(f"Preț mediu: £{report.average_price()}")
 
 
 if __name__ == "__main__":
