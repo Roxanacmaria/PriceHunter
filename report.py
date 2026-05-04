@@ -7,16 +7,16 @@ class PriceReport:
         search_text="",
         min_price=0,
         max_price=9999,
-        color="Toate"
+        rating="Toate"
     ):
         filtered = []
 
         for product in self.products:
             search_ok = search_text.lower() in product.name.lower()
             price_ok = min_price <= product.price <= max_price
-            color_ok = color == "Toate" or product.color == color
+            rating_ok = rating == "Toate" or product.rating == rating
 
-            if search_ok and price_ok and color_ok:
+            if search_ok and price_ok and rating_ok:
                 filtered.append(product)
 
         return filtered
@@ -27,8 +27,15 @@ class PriceReport:
 
         return min(products, key=lambda product: product.price)
 
+    def most_expensive_product(self, products):
+        if not products:
+            return None
+
+        return max(products, key=lambda product: product.price)
+
     def average_price(self, products):
         if not products:
             return 0
 
-        return sum(product.price for product in products) / len(products)
+        total = sum(product.price for product in products)
+        return total / len(products)
