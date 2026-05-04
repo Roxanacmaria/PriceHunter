@@ -7,12 +7,9 @@ st.set_page_config(page_title="Price Hunter", page_icon="📚", layout="wide")
 
 st.title("📚 Price Hunter")
 
-"""
-st.write(
-    "Aplicație Python care extrage cărți și prețuri folosind requests și BeautifulSoup."
-)
-st.info("Datele sunt extrase live de pe site-ul books.toscrape.com.")
-"""
+
+#st.write("Aplicație Python care extrage cărți și prețuri folosind requests și BeautifulSoup.")
+#st.info("Datele sunt extrase live de pe site-ul books.toscrape.com.")
 scraper = Scraper()
 
 st.sidebar.title("Filtre")
@@ -76,9 +73,7 @@ if st.button("Extrage cărți"):
         col3.metric("Preț mediu", f"£{report.average_price()}")
 
         st.table([product.to_dict() for product in filtered_products])
-        """
-        st.success("Datele filtrate au fost salvate în products.csv.")
-        """
+        #st.success("Datele filtrate au fost salvate în products.csv.")
     else:
         st.warning("Nu există cărți care respectă filtrele alese.")
 else:
