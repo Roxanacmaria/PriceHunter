@@ -3,9 +3,9 @@ from scraper import Scraper
 from report import PriceReport
 from storage import Storage
 
-st.set_page_config(page_title="Price Hunter", page_icon="📚", layout="wide")
+st.set_page_config(page_title="Price Hunter", layout="wide")
 
-st.title("📚 Price Hunter")
+st.title(" Price Hunter")
 
 
 #st.write("Aplicație Python care extrage cărți și prețuri folosind requests și BeautifulSoup.")
